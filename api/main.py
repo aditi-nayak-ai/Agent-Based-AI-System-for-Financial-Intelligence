@@ -1,26 +1,35 @@
-# main.py
 import os
 from fastapi import FastAPI, Depends
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 
-# Import your DB setup and models
 from db.database import SessionLocal, engine
 from db.models import Base
 from api.routes import router
 from api.auth import create_access_token
 from api.models import LoginRequest
 
-# Load environment variables
 load_dotenv()
 
-# Create database tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
-# Initialize FastAPI
 app = FastAPI(title="Enterprise Agent-Based Financial AI")
 
-# Dependency to get DB session
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve static folder
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# DB session dependency
 def get_db():
     db = SessionLocal()
     try:
@@ -28,20 +37,23 @@ def get_db():
     finally:
         db.close()
 
-# Root route for health check / deployment confirmation
+# Health check
 @app.get("/")
 def root():
     return {"message": "Enterprise Agent-Based Financial AI is running"}
 
-# Login endpoint
+# Dashboard
+@app.get("/dashboard")
+def dashboard():
+    return FileResponse("static/index.html")
+
+# Login
 @app.post("/login")
 def login(data: LoginRequest):
-    # Mock authentication; replace with actual DB logic later
     if data.username == "admin" and data.password == "admin":
         token = create_access_token({"sub": data.username, "role": "admin"})
         return {"access_token": token, "token_type": "bearer"}
-
     return {"error": "Invalid credentials"}
 
-# Include your API router(s)
+# All other routes
 app.include_router(router)
