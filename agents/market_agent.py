@@ -14,4 +14,4 @@ class MarketAgent:
             payload={"symbol": symbol}
         )
 
-        return response.di
+        return response.dict()
