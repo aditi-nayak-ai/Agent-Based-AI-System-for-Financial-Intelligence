@@ -4,239 +4,418 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Financial AI Dashboard</title>
+<title>FinAgent AI – Enterprise Financial Intelligence</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;background:#0f1117;color:#e2e8f0;min-height:100vh}
-  a{color:#60a5fa;text-decoration:none}
-  a:hover{text-decoration:underline}
-  .header{background:linear-gradient(135deg,#1e2a3a,#0f1117);border-bottom:1px solid #1e3a5f;padding:2rem 2rem 1.5rem}
-  .header h1{font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.4rem}
-  .header p{font-size:.875rem;color:#94a3b8;max-width:560px;line-height:1.6}
-  .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:.75rem}
-  .badge{font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;letter-spacing:.03em}
-  .b-green{background:#064e3b;color:#6ee7b7}.b-blue{background:#1e3a5f;color:#60a5fa}.b-amber{background:#451a03;color:#fbbf24}.b-purple{background:#2e1065;color:#c4b5fd}
-  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#1e293b;border-top:1px solid #1e293b;border-bottom:1px solid #1e293b}
-  .stat{background:#0f1117;padding:1.1rem 1.25rem;text-align:center}
-  .stat-num{font-size:1.6rem;font-weight:700;color:#fff}
-  .stat-label{font-size:.72rem;color:#64748b;margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
-  .main{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid #1e293b}
-  @media(max-width:640px){.main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
-  .panel{padding:1.5rem;border-right:1px solid #1e293b}
-  .panel:last-child{border-right:none}
-  .panel-title{font-size:.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
-  .pipe-step{display:flex;align-items:center;gap:10px;padding:.55rem .75rem;border-radius:8px;border:1px solid #1e293b;background:#0d1520;margin-bottom:6px;transition:all .3s}
-  .pipe-step.active{border-color:#1d9e75;background:#022c22}
-  .pipe-step.done{border-color:#1e3a5f;background:#0a1628}
-  .pipe-dot{width:8px;height:8px;border-radius:50%;background:#1e293b;flex-shrink:0;transition:background .3s}
-  .pipe-step.active .pipe-dot{background:#34d399;box-shadow:0 0 6px #34d39988}
-  .pipe-step.done .pipe-dot{background:#3b82f6}
-  .pipe-name{font-size:.8rem;font-weight:500;color:#94a3b8}
-  .pipe-step.active .pipe-name{color:#6ee7b7}
-  .pipe-step.done .pipe-name{color:#60a5fa}
-  .pipe-desc{font-size:.7rem;color:#475569;margin-left:auto}
-  .query-box{display:flex;flex-direction:column;gap:10px}
-  .chips{display:flex;flex-wrap:wrap;gap:6px}
-  .chip{font-size:.72rem;padding:4px 10px;border-radius:20px;border:1px solid #1e3a5f;background:#0d1a2d;color:#60a5fa;cursor:pointer;transition:all .15s}
-  .chip:hover{background:#1e3a5f;color:#93c5fd}
-  .inp-row{display:flex;gap:8px}
-  input[type=text]{flex:1;background:#0d1520;border:1px solid #1e293b;border-radius:8px;padding:.55rem .875rem;font-size:.8rem;color:#e2e8f0;outline:none}
-  input[type=text]:focus{border-color:#3b82f6}
-  .btn{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:.55rem 1.1rem;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
-  .btn:hover{background:#2563eb}
-  .btn:disabled{background:#1e293b;color:#475569;cursor:not-allowed}
-  .result{border:1px solid #1e293b;border-radius:10px;overflow:hidden;margin-top:4px}
-  .result-head{display:flex;justify-content:space-between;align-items:center;padding:.5rem .875rem;background:#0d1520;border-bottom:1px solid #1e293b;font-size:.72rem}
-  .result-head span:first-child{color:#94a3b8;font-weight:500}
-  .status-ok{color:#34d399}.status-err{color:#f87171}.status-warn{color:#fbbf24}
-  .result-body{padding:1rem;font-size:.8rem;line-height:1.7}
-  .risk-row{display:flex;justify-content:space-between;font-size:.75rem;color:#94a3b8;margin-bottom:3px}
-  .risk-bg{height:6px;background:#1e293b;border-radius:3px;overflow:hidden;margin-bottom:.75rem}
-  .risk-fill{height:100%;border-radius:3px;transition:width .8s ease}
-  .flags{display:flex;flex-wrap:wrap;gap:5px;margin-top:.5rem}
-  .flag{font-size:.7rem;padding:3px 9px;border-radius:20px}
-  .f-ok{background:#022c22;color:#6ee7b7}.f-warn{background:#451a03;color:#fbbf24}.f-info{background:#0c1a2e;color:#60a5fa}
-  pre{background:#060d18;border:1px solid #1e293b;border-radius:6px;padding:.75rem;font-size:.7rem;color:#94a3b8;overflow-x:auto;margin-top:.75rem;white-space:pre-wrap;max-height:160px;overflow-y:auto}
-  .tech-grid{display:flex;flex-wrap:wrap;gap:6px}
-  .tech-tag{font-size:.72rem;padding:4px 10px;border-radius:6px;background:#0d1520;border:1px solid #1e293b;color:#94a3b8}
-  .links{display:flex;gap:8px;flex-wrap:wrap;padding:1rem 1.5rem;border-top:1px solid #1e293b}
-  .link-btn{font-size:.8rem;padding:.45rem 1rem;border-radius:8px;border:1px solid #1e3a5f;background:#0d1a2d;color:#60a5fa;cursor:pointer}
-  .link-btn:hover{background:#1e3a5f}
-  .placeholder{color:#475569;font-size:.8rem;font-style:italic;padding:.5rem 0}
-  .spinner{display:inline-block;width:12px;height:12px;border:2px solid #1e293b;border-top-color:#60a5fa;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
-  @keyframes spin{to{transform:rotate(360deg)}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#060b14;color:#e2e8f0;min-height:100vh}
+a{color:#38bdf8;text-decoration:none}
+
+/* ── TOP NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:.875rem 2rem;border-bottom:1px solid #0f2744;background:#060b14;position:sticky;top:0;z-index:100}
+.nav-logo{font-size:1rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+.nav-logo span{color:#38bdf8}
+.nav-links{display:flex;gap:6px}
+.nav-link{font-size:.75rem;padding:.4rem .875rem;border-radius:6px;border:1px solid #0f2744;color:#94a3b8;cursor:pointer;transition:all .15s;text-decoration:none}
+.nav-link:hover{border-color:#38bdf8;color:#38bdf8}
+.nav-live{background:#0f2744;color:#38bdf8;border-color:#38bdf8}
+
+/* ── HERO ── */
+.hero{padding:3.5rem 2rem 2.5rem;max-width:900px;margin:0 auto;text-align:center}
+.hero-eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#38bdf8;margin-bottom:1rem}
+.hero h1{font-size:2.25rem;font-weight:700;color:#fff;line-height:1.25;margin-bottom:1rem}
+.hero h1 span{color:#38bdf8}
+.hero p{font-size:.9rem;color:#94a3b8;max-width:560px;margin:0 auto 1.5rem;line-height:1.8}
+.hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:2rem}
+.hbadge{font-size:.7rem;font-weight:500;padding:4px 12px;border-radius:20px;border:1px solid}
+.hb-blue{border-color:#1e3a5f;color:#60a5fa;background:#0a1628}
+.hb-green{border-color:#065f46;color:#34d399;background:#022c22}
+.hb-amber{border-color:#78350f;color:#fbbf24;background:#1c0a00}
+.hb-purple{border-color:#4c1d95;color:#a78bfa;background:#1e0a3c}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:.65rem 1.5rem;font-size:.85rem;font-weight:600;cursor:pointer;transition:background .15s}
+.btn-primary:hover{background:#2563eb}
+.btn-outline{background:transparent;color:#38bdf8;border:1px solid #38bdf8;border-radius:8px;padding:.65rem 1.5rem;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block}
+.btn-outline:hover{background:#0f2744}
+
+/* ── STATS BAR ── */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid #0f2744;border-bottom:1px solid #0f2744;background:#080e1a}
+.stat{padding:1.25rem 1rem;text-align:center;border-right:1px solid #0f2744}
+.stat:last-child{border-right:none}
+.stat-num{font-size:1.75rem;font-weight:700;color:#fff}
+.stat-num span{color:#38bdf8}
+.stat-label{font-size:.68rem;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+
+/* ── SECTION ── */
+.section{padding:2.5rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{font-size:.68rem;font-weight:600;color:#38bdf8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+.section-title{font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:.5rem}
+.section-sub{font-size:.85rem;color:#64748b;margin-bottom:2rem}
+
+/* ── ARCHITECTURE ── */
+.arch{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0;margin:1.5rem 0;padding:1.5rem;background:#080e1a;border:1px solid #0f2744;border-radius:12px}
+.arch-node{background:#0d1520;border:1px solid #1e293b;border-radius:10px;padding:.75rem 1.1rem;text-align:center;min-width:100px}
+.arch-node.highlight{border-color:#1d4ed8;background:#0a1628}
+.arch-icon{font-size:1.25rem;margin-bottom:4px}
+.arch-name{font-size:.72rem;font-weight:600;color:#e2e8f0}
+.arch-desc{font-size:.62rem;color:#475569;margin-top:2px}
+.arch-arrow{color:#1e3a5f;font-size:1.1rem;padding:0 6px;flex-shrink:0}
+
+/* ── PIPELINE ── */
+.pipe-step{display:flex;align-items:center;gap:12px;padding:.65rem .875rem;border-radius:8px;border:1px solid #0f2744;background:#080e1a;margin-bottom:6px;transition:all .3s}
+.pipe-step.active{border-color:#1d9e75;background:#011a10}
+.pipe-step.done{border-color:#1e3a5f;background:#060d18}
+.pipe-dot{width:8px;height:8px;border-radius:50%;background:#1e293b;flex-shrink:0;transition:all .3s}
+.pipe-step.active .pipe-dot{background:#34d399;box-shadow:0 0 8px #34d39988}
+.pipe-step.done .pipe-dot{background:#3b82f6}
+.pipe-name{font-size:.8rem;font-weight:600;color:#94a3b8}
+.pipe-step.active .pipe-name{color:#34d399}
+.pipe-step.done .pipe-name{color:#60a5fa}
+.pipe-role{font-size:.68rem;color:#334155;margin-left:auto}
+
+/* ── DEMO PANEL ── */
+.demo-wrap{display:grid;grid-template-columns:1fr 1.4fr;gap:0;border:1px solid #0f2744;border-radius:12px;overflow:hidden;background:#080e1a}
+.demo-left{padding:1.5rem;border-right:1px solid #0f2744}
+.demo-right{padding:1.5rem}
+.panel-title{font-size:.68rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.chip{font-size:.7rem;padding:5px 12px;border-radius:20px;border:1px solid #1e3a5f;background:#080e1a;color:#60a5fa;cursor:pointer;transition:all .15s}
+.chip:hover,.chip.active-chip{background:#1e3a5f;color:#93c5fd;border-color:#3b82f6}
+.inp-row{display:flex;gap:8px;margin-bottom:.75rem}
+input[type=text]{flex:1;background:#060b14;border:1px solid #0f2744;border-radius:8px;padding:.6rem .875rem;font-size:.8rem;color:#e2e8f0;outline:none;transition:border .15s}
+input[type=text]:focus{border-color:#1d4ed8}
+.run-btn{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:.6rem 1.1rem;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s}
+.run-btn:hover{background:#2563eb}
+.run-btn:disabled{background:#0f2744;color:#334155;cursor:not-allowed}
+
+/* ── RESULT ── */
+.result-box{border:1px solid #0f2744;border-radius:10px;overflow:hidden}
+.result-head{display:flex;justify-content:space-between;align-items:center;padding:.5rem 1rem;background:#060b14;border-bottom:1px solid #0f2744;font-size:.7rem}
+.result-head .rtitle{color:#94a3b8;font-weight:600}
+.s-ok{color:#34d399}.s-err{color:#f87171}.s-warn{color:#fbbf24}
+.result-body{padding:1.1rem;font-size:.8rem;line-height:1.8}
+.result-summary{color:#e2e8f0;font-size:.85rem;font-weight:500;margin-bottom:.875rem}
+.data-row{display:flex;justify-content:space-between;font-size:.75rem;margin-bottom:3px}
+.data-label{color:#475569}
+.data-val{color:#e2e8f0;font-weight:500}
+.risk-bar-wrap{margin:.75rem 0}
+.risk-bar-top{display:flex;justify-content:space-between;font-size:.72rem;color:#475569;margin-bottom:4px}
+.risk-bar-bg{height:6px;background:#0f2744;border-radius:3px;overflow:hidden}
+.risk-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.flags{display:flex;flex-wrap:wrap;gap:5px;margin-top:.875rem}
+.flag{font-size:.68rem;padding:3px 10px;border-radius:20px;font-weight:500}
+.f-ok{background:#022c22;color:#34d399;border:1px solid #065f46}
+.f-warn{background:#1c0700;color:#fbbf24;border:1px solid #78350f}
+.f-info{background:#060d18;color:#60a5fa;border:1px solid #1e3a5f}
+.f-red{background:#1a0505;color:#f87171;border:1px solid #7f1d1d}
+.comp-section{margin-top:.875rem;padding:.75rem;background:#060b14;border:1px solid #0f2744;border-radius:8px}
+.comp-title{font-size:.68rem;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+pre{background:#030609;border:1px solid #0f2744;border-radius:6px;padding:.75rem;font-size:.65rem;color:#475569;overflow-x:auto;margin-top:.875rem;white-space:pre-wrap;max-height:140px;overflow-y:auto}
+.placeholder-msg{color:#334155;font-size:.8rem;font-style:italic;text-align:center;padding:2rem 1rem}
+
+/* ── TECH STACK ── */
+.tech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tech-card{background:#080e1a;border:1px solid #0f2744;border-radius:10px;padding:.875rem 1rem}
+.tech-icon{font-size:1.25rem;margin-bottom:6px}
+.tech-name{font-size:.78rem;font-weight:600;color:#e2e8f0}
+.tech-desc{font-size:.68rem;color:#475569;margin-top:2px}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid #0f2744;padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:#060b14}
+.footer-name{font-size:.8rem;color:#475569}
+.footer-name span{color:#e2e8f0;font-weight:600}
+.footer-links{display:flex;gap:8px}
+.foot-btn{font-size:.75rem;padding:.4rem .875rem;border-radius:6px;border:1px solid #0f2744;color:#60a5fa;background:transparent;cursor:pointer;text-decoration:none;transition:all .15s}
+.foot-btn:hover{border-color:#38bdf8;color:#38bdf8}
+
+/* ── MISC ── */
+.spinner{display:inline-block;width:11px;height:11px;border:2px solid #1e293b;border-top-color:#60a5fa;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+  .demo-wrap{grid-template-columns:1fr}
+  .demo-left{border-right:none;border-bottom:1px solid #0f2744}
+  .stats-bar{grid-template-columns:repeat(3,1fr)}
+  .hero h1{font-size:1.5rem}
+  .arch{gap:4px}
+}
+.divider{border:none;border-top:1px solid #0f2744;margin:0}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>🤖 Enterprise Agent-Based Financial AI</h1>
-  <p>Multi-agent system using MCP & Secure Tool Orchestration. Autonomously gathers financial data, analyzes risk & trends, validates compliance, and produces structured reports.</p>
-  <div class="badges">
-    <span class="badge b-green">Python 3.11</span>
-    <span class="badge b-blue">FastAPI</span>
-    <span class="badge b-blue">JWT Auth</span>
-    <span class="badge b-amber">MCP Orchestration</span>
-    <span class="badge b-purple">Multi-Agent AI</span>
-    <span class="badge b-green">Docker</span>
-    <span class="badge b-blue">Render · Live</span>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🤖 <span>FinAgent</span> AI</div>
+  <div class="nav-links">
+    <a class="nav-link" href="https://github.com/aadiiiitii001/Agent-Based-AI-System-for-Financial-Intelligence" target="_blank">GitHub ↗</a>
+    <a class="nav-link" href="/docs" target="_blank">Swagger ↗</a>
+    <span class="nav-link nav-live">● Live on Render</span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">Fresher Project · Backend + AI Architecture</div>
+  <h1>Enterprise <span>Agent-Based</span><br>Financial Intelligence System</h1>
+  <p>A production-grade multi-agent AI platform that autonomously analyzes financial risk, market trends & compliance for US and Indian stocks — built with secure MCP tool orchestration.</p>
+  <div class="hero-badges">
+    <span class="hbadge hb-green">Python 3.11</span>
+    <span class="hbadge hb-blue">FastAPI</span>
+    <span class="hbadge hb-blue">JWT Auth</span>
+    <span class="hbadge hb-amber">MCP Orchestration</span>
+    <span class="hbadge hb-purple">Multi-Agent AI</span>
+    <span class="hbadge hb-green">Docker</span>
+    <span class="hbadge hb-blue">AlphaVantage API</span>
+    <span class="hbadge hb-blue">Yahoo Finance API</span>
+  </div>
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Try Live Demo ↓</button>
+    <a class="btn-outline" href="https://github.com/aadiiiitii001/Agent-Based-AI-System-for-Financial-Intelligence" target="_blank">View Source Code</a>
   </div>
 </div>
-<div class="stats">
-  <div class="stat"><div class="stat-num">3</div><div class="stat-label">API endpoints</div></div>
-  <div class="stat"><div class="stat-num">70</div><div class="stat-label">Git commits</div></div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">API Endpoints</div></div>
+  <div class="stat"><div class="stat-num">70<span>+</span></div><div class="stat-label">Git Commits</div></div>
   <div class="stat"><div class="stat-num">18</div><div class="stat-label">Deployments</div></div>
-  <div class="stat"><div class="stat-num">3</div><div class="stat-label">AI agents</div></div>
+  <div class="stat"><div class="stat-num">3</div><div class="stat-label">AI Agents</div></div>
+  <div class="stat"><div class="stat-num">25<span>+</span></div><div class="stat-label">Stocks Supported</div></div>
 </div>
-<div class="main">
-  <div class="panel">
-    <div class="panel-title">Agent pipeline</div>
-    <div class="pipeline">
-      <div class="pipe-step" id="ps-user"><div class="pipe-dot"></div><div><div class="pipe-name">User query</div><div class="pipe-desc">Input received</div></div></div>
-      <div class="pipe-step" id="ps-orch"><div class="pipe-dot"></div><div><div class="pipe-name">Orchestrator agent</div><div class="pipe-desc">Routes to agents</div></div></div>
-      <div class="pipe-step" id="ps-mcp"><div class="pipe-dot"></div><div><div class="pipe-name">MCP server</div><div class="pipe-desc">Secure tool dispatch</div></div></div>
-      <div class="pipe-step" id="ps-risk"><div class="pipe-dot"></div><div><div class="pipe-name">Risk agent</div><div class="pipe-desc">Volatility & scoring</div></div></div>
-      <div class="pipe-step" id="ps-comp"><div class="pipe-dot"></div><div><div class="pipe-name">Compliance agent</div><div class="pipe-desc">Regulatory check</div></div></div>
-      <div class="pipe-step" id="ps-out"><div class="pipe-dot"></div><div><div class="pipe-name">Structured report</div><div class="pipe-desc">Output generated</div></div></div>
-    </div>
-    <div style="margin-top:1rem">
-      <div class="panel-title">Tech stack</div>
-      <div class="tech-grid">
-        <span class="tech-tag">FastAPI</span><span class="tech-tag">SQLAlchemy</span>
-        <span class="tech-tag">SQLite</span><span class="tech-tag">JWT + bcrypt</span>
-        <span class="tech-tag">MCP Protocol</span><span class="tech-tag">Docker Compose</span>
-        <span class="tech-tag">Pytest</span><span class="tech-tag">OpenAPI 3.1</span>
+
+<hr class="divider"/>
+
+<!-- ARCHITECTURE -->
+<div class="section">
+  <div class="section-label">System Design</div>
+  <div class="section-title">Multi-Agent Architecture</div>
+  <div class="section-sub">Every request flows through a secure MCP layer — no agent has direct tool access</div>
+  <div class="arch">
+    <div class="arch-node"><div class="arch-icon">👤</div><div class="arch-name">User Query</div><div class="arch-desc">Dashboard / API</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node highlight"><div class="arch-icon">🔐</div><div class="arch-name">JWT Auth</div><div class="arch-desc">Token verification</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node highlight"><div class="arch-icon">🧠</div><div class="arch-name">Orchestrator</div><div class="arch-desc">Routes to agents</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node highlight"><div class="arch-icon">🛡️</div><div class="arch-name">MCP Server</div><div class="arch-desc">Secure tool gateway</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon">📊</div><div class="arch-name">Agents</div><div class="arch-desc">Risk · Market · Compliance</div></div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-node"><div class="arch-icon">📋</div><div class="arch-name">Report</div><div class="arch-desc">Structured output</div></div>
+  </div>
+</div>
+
+<hr class="divider"/>
+
+<!-- LIVE DEMO -->
+<div class="section" id="demo">
+  <div class="section-label">Live Demo</div>
+  <div class="section-title">Real-Time Financial Analysis</div>
+  <div class="section-sub">Supports 25+ US & Indian stocks with live market data</div>
+
+  <div class="demo-wrap">
+    <!-- LEFT: Pipeline -->
+    <div class="demo-left">
+      <div class="panel-title">Agent Pipeline</div>
+      <div class="pipe-step" id="ps-user"><div class="pipe-dot"></div><div><div class="pipe-name">User query received</div></div><div class="pipe-role">Input</div></div>
+      <div class="pipe-step" id="ps-auth"><div class="pipe-dot"></div><div><div class="pipe-name">JWT authentication</div></div><div class="pipe-role">Security</div></div>
+      <div class="pipe-step" id="ps-orch"><div class="pipe-dot"></div><div><div class="pipe-name">Orchestrator agent</div></div><div class="pipe-role">Routing</div></div>
+      <div class="pipe-step" id="ps-mcp"><div class="pipe-dot"></div><div><div class="pipe-name">MCP server dispatch</div></div><div class="pipe-role">Governance</div></div>
+      <div class="pipe-step" id="ps-risk"><div class="pipe-dot"></div><div><div class="pipe-name">Risk agent</div></div><div class="pipe-role">Analysis</div></div>
+      <div class="pipe-step" id="ps-comp"><div class="pipe-dot"></div><div><div class="pipe-name">Compliance agent</div></div><div class="pipe-role">Regulation</div></div>
+      <div class="pipe-step" id="ps-out"><div class="pipe-dot"></div><div><div class="pipe-name">Structured report</div></div><div class="pipe-role">Output</div></div>
+
+      <div style="margin-top:1.25rem">
+        <div class="panel-title">Supported Stocks</div>
+        <div style="font-size:.72rem;color:#475569;line-height:2">
+          🇺🇸 Tesla · Apple · NVDA · Microsoft · Amazon · Google · Meta · Netflix<br>
+          🇮🇳 TCS · Infosys · Wipro · Reliance · HDFC · ICICI · Zomato · SBI · HCL · Adani
+        </div>
       </div>
     </div>
-  </div>
-  <div class="panel">
-    <div class="panel-title">Live API tester</div>
-    <div class="query-box">
-      <div class="chips">
-        <span class="chip" onclick="setQ('Analyze Tesla stock risk')">Tesla stock risk</span>
-        <span class="chip" onclick="setQ('NVDA compliance check')">NVDA compliance</span>
-        <span class="chip" onclick="setQ('Assess Apple market volatility')">Apple volatility</span>
-        <span class="chip" onclick="setQ('Bitcoin risk assessment')">Bitcoin risk</span>
+
+    <!-- RIGHT: Query -->
+    <div class="demo-right">
+      <div class="panel-title">Live API Tester</div>
+      <div class="chips" id="chip-row">
+        <span class="chip" onclick="setQ(this,'Analyze Tesla stock risk')">Tesla risk</span>
+        <span class="chip" onclick="setQ(this,'TCS stock market analysis')">TCS India</span>
+        <span class="chip" onclick="setQ(this,'NVDA compliance check')">NVDA compliance</span>
+        <span class="chip" onclick="setQ(this,'Infosys market volatility')">Infosys</span>
+        <span class="chip" onclick="setQ(this,'Reliance stock risk')">Reliance</span>
+        <span class="chip" onclick="setQ(this,'Apple compliance check')">Apple</span>
       </div>
       <div class="inp-row">
-        <input type="text" id="qinput" placeholder="Type a financial query..."/>
-        <button class="btn" id="run-btn" onclick="runQuery()">Analyze</button>
+        <input type="text" id="qinput" placeholder="e.g. Analyze TCS stock risk..."/>
+        <button class="run-btn" id="run-btn" onclick="runQuery()">Analyze</button>
       </div>
       <div id="result-area">
-        <div class="placeholder">Select a query or type your own, then click Analyze.</div>
+        <div class="placeholder-msg">🔍 Select a stock above or type any company name to analyze</div>
       </div>
     </div>
   </div>
 </div>
-<div class="links">
-  <a class="link-btn" href="https://github.com/aadiiiitii001/Agent-Based-AI-System-for-Financial-Intelligence" target="_blank">GitHub repo ↗</a>
-  <a class="link-btn" href="https://agent-based-ai-system-for-financial.onrender.com/docs" target="_blank">Live Swagger UI ↗</a>
-  <a class="link-btn" href="https://agent-based-ai-system-for-financial.onrender.com" target="_blank">Live API ↗</a>
+
+<hr class="divider"/>
+
+<!-- TECH STACK -->
+<div class="section">
+  <div class="section-label">Engineering</div>
+  <div class="section-title">Tech Stack</div>
+  <div class="section-sub">Built with production-grade tools and best practices</div>
+  <div class="tech-grid">
+    <div class="tech-card"><div class="tech-icon">⚡</div><div class="tech-name">FastAPI</div><div class="tech-desc">Async REST API framework</div></div>
+    <div class="tech-card"><div class="tech-icon">🔐</div><div class="tech-name">JWT + Auth</div><div class="tech-desc">Secure token-based auth</div></div>
+    <div class="tech-card"><div class="tech-icon">🛡️</div><div class="tech-name">MCP Protocol</div><div class="tech-desc">Secure tool orchestration</div></div>
+    <div class="tech-card"><div class="tech-icon">🗄️</div><div class="tech-name">SQLAlchemy</div><div class="tech-desc">ORM + audit logging</div></div>
+    <div class="tech-card"><div class="tech-icon">🐳</div><div class="tech-name">Docker</div><div class="tech-desc">Containerized deployment</div></div>
+    <div class="tech-card"><div class="tech-icon">📈</div><div class="tech-name">AlphaVantage</div><div class="tech-desc">US real-time market data</div></div>
+    <div class="tech-card"><div class="tech-icon">🇮🇳</div><div class="tech-name">Yahoo Finance</div><div class="tech-desc">Indian NSE/BSE data</div></div>
+    <div class="tech-card"><div class="tech-icon">✅</div><div class="tech-name">Pytest</div><div class="tech-desc">Unit test coverage</div></div>
+  </div>
 </div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-name">Built by <span>Aditi Nayak</span> · Software Engineer · AI & Backend Systems</div>
+  <div class="footer-links">
+    <a class="foot-btn" href="https://github.com/aadiiiitii001/Agent-Based-AI-System-for-Financial-Intelligence" target="_blank">GitHub ↗</a>
+    <a class="foot-btn" href="/docs" target="_blank">API Docs ↗</a>
+    <a class="foot-btn" href="https://agent-based-ai-system-for-financial.onrender.com" target="_blank">Live API ↗</a>
+  </div>
+</footer>
+
 <script>
 const BASE='https://agent-based-ai-system-for-financial.onrender.com';
-const steps=['ps-user','ps-orch','ps-mcp','ps-risk','ps-comp','ps-out'];
-function setQ(q){document.getElementById('qinput').value=q;}
-function resetSteps(){steps.forEach(s=>{const el=document.getElementById(s);el.classList.remove('active','done');});}
+const steps=['ps-user','ps-auth','ps-orch','ps-mcp','ps-risk','ps-comp','ps-out'];
+
+function setQ(el, q){
+  document.getElementById('qinput').value=q;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active-chip'));
+  el.classList.add('active-chip');
+}
+
+function resetSteps(){steps.forEach(s=>{const e=document.getElementById(s);e.classList.remove('active','done');})}
+
 async function animateSteps(){
   resetSteps();
   for(let i=0;i<steps.length-1;i++){
     document.getElementById(steps[i]).classList.add('active');
-    await delay(500);
+    await delay(400);
     document.getElementById(steps[i]).classList.remove('active');
     document.getElementById(steps[i]).classList.add('done');
   }
   document.getElementById(steps[steps.length-1]).classList.add('active');
 }
+
 function delay(ms){return new Promise(r=>setTimeout(r,ms));}
 
 function renderResult(raw, query, ok){
   const q=(query||'').toLowerCase();
-  const tickers={tesla:'TSLA',nvda:'NVDA',nvidia:'NVDA',apple:'AAPL',aapl:'AAPL',tsla:'TSLA',bitcoin:'BTC',btc:'BTC',microsoft:'MSFT',msft:'MSFT',amazon:'AMZN',google:'GOOGL'};
+  const tickers={tesla:'TSLA',tsla:'TSLA',nvda:'NVDA',nvidia:'NVDA',apple:'AAPL',aapl:'AAPL',microsoft:'MSFT',msft:'MSFT',amazon:'AMZN',amzn:'AMZN',meta:'META',netflix:'NFLX',nflx:'NFLX',bitcoin:'BTC',btc:'BTC',tcs:'TCS',infosys:'INFY',infy:'INFY',wipro:'WIPRO',reliance:'RELIANCE',hdfc:'HDFC',icici:'ICICI',zomato:'ZOMATO',sbi:'SBI',hcl:'HCL',adani:'ADANI'};
   let ticker='ASSET';
   for(const k in tickers){if(q.includes(k)){ticker=tickers[k];break;}}
 
-  // ── CASE 1: API call failed entirely ──
   if(!ok){
     document.getElementById('result-area').innerHTML=`
-      <div class="result">
-        <div class="result-head"><span>Result</span><span class="status-err">Error</span></div>
+      <div class="result-box">
+        <div class="result-head"><span class="rtitle">Error</span><span class="s-err">Failed</span></div>
         <div class="result-body">
-          <div style="color:#f87171;margin-bottom:.5rem">⚠ ${raw?.error||'API call failed'}</div>
-          <div style="color:#94a3b8;font-size:.75rem">${raw?.hint||'Please try again.'}</div>
+          <div style="color:#f87171">⚠ ${raw?.error||'Could not reach API'}</div>
+          <div style="color:#334155;font-size:.72rem;margin-top:.5rem">${raw?.hint||'The server may be sleeping. Try again in 30 seconds.'}</div>
         </div>
       </div>`;
     return;
   }
 
-  // ── CASE 2: No financial query detected (orchestrator returned error) ──
   if(raw?.result?.error || raw?.error){
     document.getElementById('result-area').innerHTML=`
-      <div class="result">
-        <div class="result-head"><span>Result · ${ticker}</span><span class="status-warn">No data</span></div>
+      <div class="result-box">
+        <div class="result-head"><span class="rtitle">Result</span><span class="s-warn">No Match</span></div>
         <div class="result-body">
           <div style="color:#fbbf24;margin-bottom:.75rem">⚠ No financial data found for this query.</div>
-          <div style="color:#94a3b8;font-size:.75rem;line-height:2">
-            Try queries like:<br>
-            • "Analyze Tesla stock risk"<br>
-            • "Apple market volatility"<br>
-            • "NVDA compliance check"<br>
-            • "Bitcoin risk assessment"
-          </div>
+          <div style="color:#334155;font-size:.72rem;line-height:2">Try: "Tesla stock risk" · "TCS market analysis" · "Infosys compliance" · "NVDA volatility"</div>
         </div>
       </div>`;
     return;
   }
 
   const details=raw?.result?.details||{};
-  const riskData=details.risk||{};
-  const marketData=details.market||{};
+  const risk=details.risk||{};
+  const market=details.market||{};
+  const comp=details.compliance||{};
+  const hasRisk=!!risk.risk_score;
+  const hasMarket=!!(market.price||market.symbol);
+  const hasComp=!!comp.entity;
 
-  // ── CASE 3: API returned 200 but no real data in details ──
-  if(!riskData.risk_score && !marketData.price){
+  if(!hasRisk && !hasMarket && !hasComp){
     document.getElementById('result-area').innerHTML=`
-      <div class="result">
-        <div class="result-head"><span>Result · ${ticker}</span><span class="status-warn">No data</span></div>
+      <div class="result-box">
+        <div class="result-head"><span class="rtitle">Result · ${ticker}</span><span class="s-warn">No Data</span></div>
         <div class="result-body">
-          <div style="color:#fbbf24;margin-bottom:.75rem">⚠ No financial data found for this query.</div>
-          <div style="color:#94a3b8;font-size:.75rem;line-height:2">
-            Try queries like:<br>
-            • "Analyze Tesla stock risk"<br>
-            • "Apple market volatility"<br>
-            • "NVDA compliance check"<br>
-            • "Bitcoin risk assessment"
-          </div>
+          <div style="color:#fbbf24;margin-bottom:.5rem">⚠ No financial data found.</div>
+          <div style="color:#334155;font-size:.72rem;line-height:2">Try: "Tesla stock risk" · "TCS market" · "Reliance compliance"</div>
         </div>
       </div>`;
     return;
   }
 
-  // ── CASE 4: Real data returned ──
-  const score=Math.round((riskData.risk_score||0)*100);
-  const sentiment=score<45?'Low':score<65?'Moderate':'High';
-  const color=score<45?'#34d399':score<65?'#fbbf24':'#f87171';
-  const summary=raw?.result?.summary||'Automated financial intelligence report';
-  const price=marketData.price?`$${marketData.price}`:null;
-  const trend=marketData.trend||null;
-  const assessment=riskData.assessment||null;
+  const score=hasRisk?Math.round(risk.risk_score*100):null;
+  const sent=score===null?null:score<35?'Low':score<65?'Moderate':'High';
+  const col=score===null?'#60a5fa':score<35?'#34d399':score<65?'#fbbf24':'#f87171';
+  const price=market.price||risk.price;
+  const currency=risk.currency||market.currency||'';
+  const isIndia=currency.includes('INR');
+  const priceStr=price?(isIndia?`₹${price}`:`$${price}`):null;
+  const trend=market.trend||null;
+  const change=market.change_percent??risk.change_percent??null;
+  const source=risk.data_source||market.data_source||'Live API';
 
   document.getElementById('result-area').innerHTML=`
-    <div class="result">
+    <div class="result-box">
       <div class="result-head">
-        <span>Result · ${ticker}</span>
-        <span class="status-ok">200 OK</span>
+        <span class="rtitle">Result · ${ticker} ${isIndia?'🇮🇳':'🇺🇸'}</span>
+        <span class="s-ok">200 OK · Live Data</span>
       </div>
       <div class="result-body">
-        <div style="color:#e2e8f0;margin-bottom:.75rem">${summary}</div>
-        ${price?`<div style="font-size:.75rem;color:#94a3b8;margin-bottom:.5rem">Price: <span style="color:#60a5fa">${price}</span> &nbsp;|&nbsp; Trend: <span style="color:#34d399">${trend}</span></div>`:''}
-        ${assessment?`<div style="font-size:.75rem;color:#94a3b8;margin-bottom:.5rem">Assessment: <span style="color:#e2e8f0">${assessment}</span></div>`:''}
-        <div class="risk-row"><span>Risk score</span><span style="color:${color}">${score}/100 · ${sentiment}</span></div>
-        <div class="risk-bg"><div class="risk-fill" style="width:${score}%;background:${color}"></div></div>
-        <div class="flags">
-          <span class="flag f-ok">✓ Audit logged</span>
-          <span class="flag f-ok">✓ Input sanitized</span>
-          <span class="flag f-info">⚡ MCP routed</span>
-          ${score>65?'<span class="flag f-warn">⚠ High volatility detected</span>':''}
+        <div class="result-summary">Automated financial intelligence report</div>
+
+        ${priceStr||trend||change!==null?`
+        <div style="background:#060b14;border:1px solid #0f2744;border-radius:8px;padding:.75rem;margin-bottom:.875rem">
+          ${priceStr?`<div class="data-row"><span class="data-label">Market Price</span><span class="data-val" style="color:#60a5fa;font-size:.9rem;font-weight:700">${priceStr}</span></div>`:''}
+          ${trend?`<div class="data-row"><span class="data-label">Trend</span><span class="data-val">${trend}</span></div>`:''}
+          ${change!==null?`<div class="data-row"><span class="data-label">Change</span><span class="data-val" style="color:${change>=0?'#34d399':'#f87171'}">${change>=0?'+':''}${change}%</span></div>`:''}
+          ${market.volume?`<div class="data-row"><span class="data-label">Volume</span><span class="data-val">${Number(market.volume).toLocaleString()}</span></div>`:''}
+          ${market.day_high?`<div class="data-row"><span class="data-label">Day High / Low</span><span class="data-val">${isIndia?'₹':'$'}${market.day_high} / ${isIndia?'₹':'$'}${market.day_low}</span></div>`:''}
+          <div class="data-row"><span class="data-label">Data Source</span><span class="data-val" style="color:#475569;font-size:.68rem">${source}</span></div>
+        </div>`:''}
+
+        ${score!==null?`
+        <div class="risk-bar-wrap">
+          <div class="risk-bar-top"><span>Risk Score</span><span style="color:${col};font-weight:600">${score}/100 · ${sent}</span></div>
+          <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:${score}%;background:${col}"></div></div>
         </div>
+        ${risk.assessment?`<div style="font-size:.75rem;color:#94a3b8;margin-bottom:.5rem">${risk.assessment}</div>`:''}
+        ${risk.market?`<div style="font-size:.68rem;color:#334155">Exchange: ${risk.market}</div>`:''}
+        `:''}
+
+        ${hasComp?`
+        <div class="comp-section">
+          <div class="comp-title">Compliance Analysis · ${comp.entity}</div>
+          <div class="data-row" style="margin-bottom:.5rem">
+            <span class="data-label">Status</span>
+            <span style="color:${comp.compliance_status==='Clear'?'#34d399':comp.compliance_status==='High Risk'?'#f87171':'#fbbf24'};font-weight:600">${comp.compliance_status}</span>
+          </div>
+          ${comp.summary?`<div style="font-size:.72rem;color:#64748b;margin-bottom:.5rem">${comp.summary}</div>`:''}
+          <div class="flags">${(comp.flags||[]).map(f=>`<span class="flag f-warn">⚠ ${f}</span>`).join('')}</div>
+        </div>`:''}
+
+        <div class="flags" style="margin-top:.875rem">
+          <span class="flag f-ok">✓ Audit logged</span>
+          <span class="flag f-ok">✓ MCP secured</span>
+          <span class="flag f-info">⚡ JWT verified</span>
+          ${score!==null&&score>65?'<span class="flag f-red">⚠ High volatility</span>':''}
+        </div>
+
         <pre>${JSON.stringify(raw,null,2)}</pre>
       </div>
     </div>`;
@@ -244,30 +423,22 @@ function renderResult(raw, query, ok){
 
 async function runQuery(){
   const q=document.getElementById('qinput').value.trim();
-  if(!q){alert('Please enter a query first.');return;}
+  if(!q){alert('Please enter a query.');return;}
   const btn=document.getElementById('run-btn');
   btn.disabled=true;
-  btn.innerHTML='<span class="spinner"></span>Running...';
-  document.getElementById('result-area').innerHTML=`<div style="color:#475569;font-size:.8rem;padding:.5rem 0"><span class="spinner"></span>Calling live API...</div>`;
+  btn.innerHTML='<span class="spinner"></span>Analyzing...';
+  document.getElementById('result-area').innerHTML=`<div class="placeholder-msg"><span class="spinner"></span>Calling live API on Render...</div>`;
   const anim=animateSteps();
   let raw=null,ok=false;
   try{
-    const loginRes=await fetch(BASE+'/login',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({username:'admin',password:'admin'})
-    });
-    if(!loginRes.ok) throw new Error('Login failed: '+loginRes.status);
-    const ld=await loginRes.json();
+    const lr=await fetch(BASE+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:'admin',password:'admin'})});
+    if(!lr.ok) throw new Error('Login failed');
+    const ld=await lr.json();
     const token=ld.access_token;
-    if(!token) throw new Error('No token received');
-    const res=await fetch(BASE+'/analyze',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({query:q})
-    });
+    if(!token) throw new Error('No token');
+    const res=await fetch(BASE+'/analyze',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({query:q})});
     if(res.ok){raw=await res.json();ok=true;}
-    else{raw={error:'API returned '+res.status};}
+    else raw={error:'API returned '+res.status};
   }catch(e){
     raw={error:e.message,hint:'Render free tier may be sleeping — try again in 30s'};
   }
