@@ -116,7 +116,7 @@ Create a `.env` file:
  
 ```env
 ALPHAVANTAGE_API_KEY=your_key_here
-SECRET_KEY=your_secret_key
+SECRET_KEY=sqlite:///./finance_ai.db
 ADMIN_USERNAME=your_username
 ADMIN_PASSWORD=your_password
 ALLOWED_ORIGINS=http://localhost:8000
