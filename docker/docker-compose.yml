@@ -1,9 +1,29 @@
 version: "3.9"
-
+ 
+# Fix: previously no secrets were injected, so ALPHAVANTAGE_API_KEY and
+# SECRET_KEY were always empty strings at runtime. Now sourced from a
+# .env file (excluded from version control via .gitignore).
+ 
 services:
   finance-ai:
-    build: .
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
     ports:
       - "8000:8000"
+    env_file:
+      - ../.env               # populate ALPHAVANTAGE_API_KEY and SECRET_KEY here
     environment:
       - ENV=production
+      # Fallback values — override these in .env for real deployments
+      - SECRET_KEY=${SECRET_KEY:-change_me_in_production}
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY:-}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///./finance_ai.db}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+ 
