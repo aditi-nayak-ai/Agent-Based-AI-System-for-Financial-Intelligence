@@ -1,10 +1,20 @@
 import os
+import secrets
+import logging
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, status
 
-# Reads from environment variable if set, otherwise uses default
-SECRET_KEY = os.getenv("SECRET_KEY", "SUPER_SECRET_KEY")
+logger = logging.getLogger(__name__)
+
+# No built in default. If SECRET_KEY is missing, a random key is made for this
+# process only, so nobody can sign tokens with a key that is public in the repo.
+# Set SECRET_KEY in production, otherwise every restart logs everyone out.
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_urlsafe(48)
+    logger.warning("SECRET_KEY is not set. Using a random key for this process. Set SECRET_KEY in the environment.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -16,7 +26,10 @@ def create_access_token(data: dict):
 
 def verify_token(token: str):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # require_exp: a token without an expiry time is rejected
+        payload = jwt.decode(
+            token, SECRET_KEY, algorithms=[ALGORITHM], options={"require_exp": True}
+        )
         return payload
     except JWTError:
         raise HTTPException(
