@@ -1,16 +1,16 @@
 import os
 import logging
 import requests
-
+ 
 logger = logging.getLogger(__name__)
-
-
+ 
+ 
 class RiskAgent:
     def __init__(self):
         self.api_key   = os.getenv("ALPHAVANTAGE_API_KEY")
         self.alpha_url = "https://www.alphavantage.co/query"
         self.name      = "RiskAgent"
-
+ 
     US_SYMBOLS = {
         "TESLA": "TSLA",   "TSLA": "TSLA",
         "APPLE": "AAPL",   "AAPL": "AAPL",
@@ -22,7 +22,7 @@ class RiskAgent:
         "NETFLIX": "NFLX", "NFLX": "NFLX",
         "BITCOIN": "BTC",  "BTC": "BTC",
     }
-
+ 
     INDIA_SYMBOLS = {
         "TCS": "TCS.NS",             "TATA CONSULTANCY": "TCS.NS",
         "INFOSYS": "INFY.NS",        "INFY": "INFY.NS",
@@ -46,7 +46,7 @@ class RiskAgent:
         "TECH MAHINDRA": "TECHM.NS", "TECHM": "TECHM.NS",
         "NIFTY": "^NSEI",            "SENSEX": "^BSESN",
     }
-
+ 
     def extract_symbol(self, query: str):
         q = query.upper().strip()
         for k, v in self.US_SYMBOLS.items():
@@ -56,15 +56,26 @@ class RiskAgent:
             if k in q.title() or k in q:
                 return v, "IN"
         return None, None
-
+ 
     def get_us_data(self, symbol: str) -> dict | None:
+        """AlphaVantage first, Yahoo as a fallback when AlphaVantage returns nothing."""
+        data = self._alpha_data(symbol)
+        if data:
+            return data
+        data = self.get_india_data(symbol)
+        if data:
+            logger.info("RiskAgent used Yahoo fallback for %s", symbol)
+            data = dict(data, fallback=True)
+        return data
+
+    def _alpha_data(self, symbol: str) -> dict | None:
         try:
             if symbol == "BTC":
                 # AlphaVantage only gives the current BTC rate, with no previous close,
                 # so the change was hardcoded to 0.0 and Bitcoin always scored Low.
                 # Yahoo gives price and previous close, so a real change can be worked out.
                 return self.get_india_data("BTC-USD")
-
+ 
             url   = (
                 f"{self.alpha_url}?function=GLOBAL_QUOTE"
                 f"&symbol={symbol}&apikey={self.api_key}"
@@ -72,11 +83,11 @@ class RiskAgent:
             r     = requests.get(url, timeout=10)
             r.raise_for_status()
             quote = r.json().get("Global Quote", {})
-
+ 
             if not quote or "05. price" not in quote:
                 logger.warning("AlphaVantage returned empty quote for %s", symbol)
                 return None
-
+ 
             return {
                 "price":          round(float(quote["05. price"]), 2),
                 "change_percent": float(quote["10. change percent"].replace("%", "")),
@@ -84,7 +95,7 @@ class RiskAgent:
         except Exception as exc:
             logger.error("RiskAgent US fetch failed for %s: %s", symbol, exc)
             return None
-
+ 
     def get_india_data(self, symbol: str) -> dict | None:
         try:
             url     = (
@@ -94,13 +105,13 @@ class RiskAgent:
             headers = {"User-Agent": "Mozilla/5.0"}
             r       = requests.get(url, headers=headers, timeout=10)
             r.raise_for_status()
-
+ 
             result     = r.json()["chart"]["result"][0]
             meta       = result["meta"]
             price      = meta.get("regularMarketPrice", 0)
             prev_close = meta.get("previousClose") or meta.get("chartPreviousClose", price)
             change_pct = ((price - prev_close) / prev_close * 100) if prev_close else 0
-
+ 
             return {
                 "price":          round(price, 2),
                 "change_percent": round(change_pct, 2),
@@ -108,7 +119,7 @@ class RiskAgent:
         except Exception as exc:
             logger.error("RiskAgent India fetch failed for %s: %s", symbol, exc)
             return None
-
+ 
     def calculate_risk(self, change_percent: float) -> float:
         abs_c = abs(change_percent)
         if abs_c < 1:   return 0.20
@@ -116,33 +127,33 @@ class RiskAgent:
         elif abs_c < 4: return 0.55
         elif abs_c < 6: return 0.72
         else:           return 0.88
-
+ 
     def interpret_risk(self, score: float) -> str:
         if score < 0.3:   return "Low risk – stable behavior observed"
         elif score < 0.7: return "Moderate risk – monitor for fluctuations"
         else:             return "High risk – significant volatility detected"
-
+ 
     def run(self, query: str) -> dict:
         symbol, market = self.extract_symbol(query)
-
+ 
         if not symbol:
             return {"status": "skipped", "reason": "No valid stock symbol identified"}
-
+ 
         data = (
             self.get_india_data(symbol)
             if market == "IN"
             else self.get_us_data(symbol)
         )
-
+ 
         if not data:
             return {
                 "status": "skipped",
                 "reason": f"Could not fetch real data for {symbol}",
             }
-
+ 
         change     = data.get("change_percent", 0)
         risk_score = self.calculate_risk(change)
-
+ 
         return {
             "instrument":    symbol,
             "market":        "NSE/BSE (India)" if market == "IN" else "NASDAQ/NYSE (US)",
@@ -158,7 +169,7 @@ class RiskAgent:
             "assessment":    self.interpret_risk(risk_score),
             "data_source":   (
                 "Yahoo Finance (Real-time)"
-                if market == "IN" or symbol == "BTC"
+                if market == "IN" or symbol == "BTC" or data.get("fallback")
                 else "AlphaVantage (Real-time)"
             ),
         }
