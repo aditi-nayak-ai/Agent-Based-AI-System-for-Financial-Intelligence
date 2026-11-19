@@ -1,4 +1,3 @@
-Market agent · PY
 import os
 import logging
 import requests
