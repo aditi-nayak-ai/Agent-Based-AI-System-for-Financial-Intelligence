@@ -1,3 +1,4 @@
+Market agent · PY
 import os
 import logging
 import requests
@@ -62,6 +63,18 @@ class MarketAgent:
         else:             return "Neutral ➡"
  
     def get_us_data(self, symbol: str) -> dict | None:
+        """AlphaVantage first. Its free key allows very few calls per day, so when it
+        returns nothing (limit reached, bad key) fall back to Yahoo, which also has US stocks."""
+        data = self._alpha_quote(symbol)
+        if data:
+            return data
+        data = self.get_india_data(symbol)
+        if data:
+            logger.info("MarketAgent used Yahoo fallback for %s", symbol)
+            data = dict(data, currency="USD", exchange="NASDAQ/NYSE")
+        return data
+ 
+    def _alpha_quote(self, symbol: str) -> dict | None:
         try:
             url = (
                 f"{self.alpha_url}?function=GLOBAL_QUOTE"
