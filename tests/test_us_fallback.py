@@ -15,7 +15,7 @@ class FakeResp:
         return self._d
  
  
-YAHOO = {"chart": {"result": [{"meta": {"regularMarketPrice": 250.0, "previousClose": 245.0}}]}}
+YAHOO = {"chart": {"result": [{"meta": {"regularMarketPrice": 250.0, "previousClose": 246.0}}]}}
 ALPHA_OK = {"Global Quote": {"05. price": "180.50", "10. change percent": "2.34%", "06. volume": "1000"}}
 ALPHA_LIMIT = {"Information": "Thank you for using Alpha Vantage. You have reached the daily rate limit."}
  
